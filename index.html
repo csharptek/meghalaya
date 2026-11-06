@@ -628,10 +628,32 @@
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
+    // Free, beautiful, rock-solid basemap layers (NO API KEY EVER REQUIRED)
+    const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    });
+
+    const esriWorldTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, METI, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community',
       maxZoom: 18
-    }).addTo(map);
+    });
+
+    const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      maxZoom: 18
+    });
+
+    // Default to clean World Topo Map (stunning mountain ridges of Meghalaya!)
+    esriWorldTopo.addTo(map);
+
+    const baseMaps = {
+      "⛰️ Mountain Topo": esriWorldTopo,
+      "🗺️ Detailed Roads": osmStandard,
+      "🛰️ Satellite Imagery": esriSatellite
+    };
+
+    L.control.layers(baseMaps, null, { position: 'bottomleft' }).addTo(map);
 
     let activeMarkers = [];
     let activePolylines = [];
