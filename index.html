@@ -1625,7 +1625,7 @@
     (function initDayChips() {
       const el = document.getElementById('dayChips');
       el.innerHTML = `<button class="day-chip active" data-day="all" style="--c:#059669" onclick="setDayFilter('all', this)">Full Circuit</button>`
-        + tourData.map(d => `<button class="day-chip" data-day="${d.day}" style="--c:${d.color}" onclick="setDayFilter(${d.day}, this)">D${d.day}</button>`).join('');
+        + tourData.filter(d => d.day !== 6).map(d => `<button class="day-chip" data-day="${d.day}" style="--c:${d.color}" onclick="setDayFilter(${d.day}, this)">D${d.day}</button>`).join('');
     })();
     renderSidebar('all');
     initMap();
