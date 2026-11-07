@@ -449,6 +449,22 @@
     }
     body.sidebar-open .mobile-nav-toggle, body.search-open .mobile-nav-toggle { display: none !important; }
     body.sidebar-open .top-tools { display: none; }
+    .day-chips { display: none; }
+    @media (max-width: 900px) {
+      .day-chips {
+        display: flex; position: absolute; top: 72px; left: 12px; right: 12px; z-index: 999;
+        gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px;
+      }
+      .day-chips::-webkit-scrollbar { display: none; }
+      body.sidebar-open .day-chips, body.search-open .day-chips { display: none; }
+    }
+    .day-chip {
+      --c: #059669;
+      flex: 0 0 auto; min-width: 42px; height: 34px; padding: 0 10px; border-radius: 17px;
+      border: 2px solid var(--c); background: rgba(255,255,255,0.95); color: var(--c);
+      font-size: 12.5px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .day-chip.active { background: var(--c); color: white; }
     .sidebar-close {
       display: none; position: absolute; top: 16px; right: 16px; z-index: 2;
       background: white; color: var(--primary-dark); border: none; border-radius: 20px;
@@ -655,6 +671,7 @@
       </div>
     </div>
 
+    <div class="day-chips" id="dayChips"></div>
     <div class="map-error" id="mapError"></div>
     <button class="map-fab" id="locateBtn" onclick="toggleLocate()" aria-label="Show my location">
       <i class="fa-solid fa-location-crosshairs"></i>
@@ -1290,8 +1307,7 @@
     }
 
     function setDayFilter(day, btn) {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      document.querySelectorAll('.filter-btn, .day-chip').forEach(b => b.classList.toggle('active', b.dataset.day === String(day)));
       currentDay = day;
       renderSidebar(day);
       plotMap(day);
@@ -1299,7 +1315,7 @@
         placeSearchMarker();
         if (day !== 'all') document.getElementById('rerouteDay').value = String(day);
       }
-      if (window.innerWidth <= 900 && day !== 'all') toggleSidebar(false);
+      if (window.innerWidth <= 900) toggleSidebar(false);
     }
 
     function focusStop(dayNum, idx) {
@@ -1469,7 +1485,7 @@
 
       if (String(currentDay) !== String(dayNum)) {
         currentDay = dayNum;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.day === String(dayNum)));
+        document.querySelectorAll('.filter-btn, .day-chip').forEach(b => b.classList.toggle('active', b.dataset.day === String(dayNum)));
         renderSidebar(dayNum);
         plotMap(dayNum);
         placeSearchMarker();
@@ -1606,6 +1622,11 @@
       sel.innerHTML = tourData.map(d => `<option value="${d.day}">Day ${d.day} — ${esc(d.title)}</option>`).join('');
     })();
     if (isMobile()) document.getElementById('searchBar').classList.add('collapsed');
+    (function initDayChips() {
+      const el = document.getElementById('dayChips');
+      el.innerHTML = `<button class="day-chip active" data-day="all" style="--c:#059669" onclick="setDayFilter('all', this)">Full Circuit</button>`
+        + tourData.map(d => `<button class="day-chip" data-day="${d.day}" style="--c:${d.color}" onclick="setDayFilter(${d.day}, this)">D${d.day}</button>`).join('');
+    })();
     renderSidebar('all');
     initMap();
   </script>
