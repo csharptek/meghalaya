@@ -298,7 +298,21 @@
       box-shadow: 0 4px 18px rgba(0,0,0,0.15); border: 1px solid var(--border);
       min-height: 48px;
     }
-    .search-ico { color: var(--slate); font-size: 15px; }
+    .search-toggle {
+      border: none; background: none; color: var(--slate); font-size: 15px; cursor: pointer;
+      width: 34px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;
+    }
+    .search-bar.has-pac .search-toggle { display: none; }
+    .search-bar.has-pac { padding-left: 6px; }
+    @media (max-width: 900px) {
+      .search-bar.collapsed {
+        width: 48px; height: 48px; min-height: 48px; padding: 0; align-self: flex-start;
+        justify-content: center; border-radius: 50%;
+      }
+      .search-bar.collapsed .search-toggle { display: flex; color: var(--dark); font-size: 17px; width: 48px; height: 48px; }
+      .search-bar.collapsed #placeSearchHost, .search-bar.collapsed .search-clear { display: none !important; }
+      .search-bar:not(.collapsed) .search-clear { display: flex; }
+    }
     #placeSearchHost { flex: 1; min-width: 0; }
     #placeSearchHost gmp-place-autocomplete, #placeAutocomplete {
       width: 100%; color-scheme: light; border: none;
@@ -617,8 +631,8 @@
 
     <!-- Search + Re-route -->
     <div class="top-tools">
-      <div class="search-bar">
-        <i class="fa-solid fa-magnifying-glass search-ico"></i>
+      <div class="search-bar" id="searchBar">
+        <button class="search-toggle" onclick="expandSearch()" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
         <div id="placeSearchHost"></div>
         <button id="searchClear" class="search-clear" onclick="clearSearch()" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -984,6 +998,7 @@
           clickableIcons: true
         });
         infoWindow = new InfoWindow({ maxWidth: 280 });
+        map.addListener('click', () => { if (!searchedPlace) collapseSearch(); });
         mapsReadyResolve();
         plotMap(currentDay);
         initSearch();
@@ -1307,6 +1322,7 @@
         if (placesLib.PlaceAutocompleteElement) {
           const pac = new placesLib.PlaceAutocompleteElement({ includedRegionCodes: ['in'], locationBias: bias });
           pac.id = 'placeAutocomplete';
+          document.getElementById('searchBar').classList.add('has-pac');
           pac.setAttribute('placeholder', 'Search any place in Meghalaya / Assam…');
           host.appendChild(pac);
           const handle = async place => {
@@ -1390,6 +1406,21 @@
       document.getElementById('reroutePanel').classList.toggle('no-reroute', !ENABLE_REROUTE);
       document.getElementById('reroutePanel').hidden = false;
       document.getElementById('searchClear').style.display = 'flex';
+      if (isMobile()) { const a = document.activeElement; if (a && a.blur) a.blur(); }
+    }
+
+    const isMobile = () => window.innerWidth <= 900;
+    function expandSearch() {
+      const bar = document.getElementById('searchBar');
+      if (!bar.classList.contains('collapsed')) return;
+      bar.classList.remove('collapsed');
+      setTimeout(() => {
+        const el = document.getElementById('placeAutocomplete') || document.querySelector('.legacy-search-input');
+        if (el && el.focus) el.focus();
+      }, 50);
+    }
+    function collapseSearch() {
+      if (isMobile()) document.getElementById('searchBar').classList.add('collapsed');
     }
 
     function clearSearch() {
@@ -1399,7 +1430,8 @@
       clearReroute();
       if (map) plotMap(currentDay);
       document.getElementById('reroutePanel').hidden = true;
-      document.getElementById('searchClear').style.display = 'none';
+      document.getElementById('searchClear').style.display = '';
+      collapseSearch();
       const pac = document.getElementById('placeAutocomplete');
       if (pac) { try { pac.value = ''; } catch (e) {} }
       const inp = document.querySelector('.legacy-search-input');
@@ -1569,6 +1601,7 @@
       const sel = document.getElementById('rerouteDay');
       sel.innerHTML = tourData.map(d => `<option value="${d.day}">Day ${d.day} — ${esc(d.title)}</option>`).join('');
     })();
+    if (isMobile()) document.getElementById('searchBar').classList.add('collapsed');
     renderSidebar('all');
     initMap();
   </script>
