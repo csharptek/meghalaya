@@ -866,7 +866,6 @@
         const markerLib = await google.maps.importLibrary('marker');
         AdvMarker = markerLib.AdvancedMarkerElement;
         PinEl = markerLib.PinElement;
-        try { RouteLib = (await google.maps.importLibrary('routes')).Route || null; } catch (e) { RouteLib = null; }
 
         map = new Map(document.getElementById('map'), {
           center: { lat: 25.6, lng: 91.75 },
@@ -896,6 +895,21 @@
       }
     }
 
+    function decodePolyline(str) {
+      let i = 0, lat = 0, lng = 0;
+      const out = [];
+      while (i < str.length) {
+        let b, shift = 0, result = 0;
+        do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+        lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+        shift = 0; result = 0;
+        do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+        lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+        out.push({ lat: lat / 1e5, lng: lng / 1e5 });
+      }
+      return out;
+    }
+
     // ---------- Routing (Routes API → Directions → straight line) ----------
     async function computeRoute(coordsList, optimize = false) {
       const key = coordsList.map(cstr).join(';') + (optimize ? '|opt' : '');
@@ -904,30 +918,43 @@
         await mapsReady;
         const pts = coordsList.map(ll);
         const mid = pts.slice(1, -1);
-        if (RouteLib && RouteLib.computeRoutes) {
-          try {
-            const req = {
-              origin: pts[0],
-              destination: pts[pts.length - 1],
-              travelMode: 'DRIVING',
-              fields: ['path', 'distanceMeters', 'durationMillis', 'optimizedIntermediateWaypointIndices']
+        try {
+          const wp = p => ({ location: { latLng: { latitude: p.lat, longitude: p.lng } } });
+          const body = {
+            origin: wp(pts[0]),
+            destination: wp(pts[pts.length - 1]),
+            travelMode: 'DRIVE',
+            routingPreference: 'TRAFFIC_UNAWARE',
+            polylineQuality: 'OVERVIEW',
+            languageCode: 'en-IN',
+            regionCode: 'IN'
+          };
+          if (mid.length) body.intermediates = mid.map(wp);
+          if (optimize && mid.length > 1) body.optimizeWaypointOrder = true;
+          const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': CFG.googleMapsApiKey,
+              'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.optimizedIntermediateWaypointIndex'
+            },
+            body: JSON.stringify(body)
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error((data.error && data.error.message) || ('HTTP ' + res.status));
+          const r = data.routes && data.routes[0];
+          if (r && r.polyline && r.polyline.encodedPolyline) {
+            const order = r.optimizedIntermediateWaypointIndex;
+            return {
+              path: decodePolyline(r.polyline.encodedPolyline),
+              distance: r.distanceMeters ?? null,
+              duration: r.duration ? parseFloat(r.duration) : null,
+              order: Array.isArray(order) && order.length === mid.length && order[0] !== -1 ? order : null,
+              road: true
             };
-            if (mid.length) req.intermediates = mid.map(location => ({ location }));
-            if (optimize && mid.length > 1) req.optimizeWaypointOrder = true;
-            const { routes } = await RouteLib.computeRoutes(req);
-            const r = routes && routes[0];
-            if (r && r.path && r.path.length) {
-              const order = r.optimizedIntermediateWaypointIndices;
-              return {
-                path: r.path.map(q => ({ lat: num(q.lat), lng: num(q.lng) })),
-                distance: r.distanceMeters ?? null,
-                duration: r.durationMillis != null ? r.durationMillis / 1000 : null,
-                order: Array.isArray(order) && order.length === mid.length && order[0] !== -1 ? order : null,
-                road: true
-              };
-            }
-          } catch (e) { console.warn('Routes API failed, trying Directions', e); }
-        }
+          }
+          throw new Error('No route returned');
+        } catch (e) { console.warn('Routes API failed, trying Directions', e); }
         try {
           if (!dirService) dirService = new google.maps.DirectionsService();
           const res = await dirService.route({
