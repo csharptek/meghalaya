@@ -408,20 +408,38 @@
     /* Floating Navigation Controls */
     .mobile-nav-toggle {
       position: absolute;
-      top: 16px;
-      left: 16px;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
       z-index: 1001;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: white;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+      height: 46px;
+      padding: 0 20px;
+      border-radius: 30px;
+      background: var(--primary);
+      border: 2px solid white;
+      box-shadow: 0 6px 20px rgba(5,150,105,0.45);
       display: none;
       align-items: center;
       justify-content: center;
-      color: var(--dark);
+      gap: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
       cursor: pointer;
+      animation: navPulse 2.2s ease-in-out infinite;
+    }
+    @keyframes navPulse {
+      0%, 100% { box-shadow: 0 6px 20px rgba(5,150,105,0.45), 0 0 0 0 rgba(5,150,105,0.5); }
+      50% { box-shadow: 0 6px 20px rgba(5,150,105,0.45), 0 0 0 10px rgba(5,150,105,0); }
+    }
+    body.sidebar-open .mobile-nav-toggle { display: none !important; }
+    body.sidebar-open .top-tools { display: none; }
+    .sidebar-close {
+      display: none; position: absolute; top: 16px; right: 16px; z-index: 2;
+      background: white; color: var(--primary-dark); border: none; border-radius: 20px;
+      padding: 8px 14px; font-size: 13px; font-weight: 800; cursor: pointer; gap: 6px; align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     .group-pill {
@@ -518,10 +536,10 @@
       }
       .mobile-nav-toggle {
         display: flex;
-        top: 16px;
       }
+      .sidebar-close { display: inline-flex; }
       .top-tools {
-        left: 70px; right: 12px; width: auto;
+        left: 12px; right: 12px; width: auto;
       }
       .group-pill { display: none; }
       .backdrop {
@@ -548,8 +566,8 @@
   <div class="backdrop" id="backdrop" onclick="toggleSidebar()"></div>
 
   <!-- Mobile Toggle Button -->
-  <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Toggle Menu">
-    <i class="fa-solid fa-bars"></i>
+  <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Open itinerary">
+    <i class="fa-solid fa-list-ul"></i> Click here for Itinerary
   </button>
 
   <!-- Group Badge -->
@@ -561,6 +579,7 @@
   <!-- Sidebar -->
   <aside id="sidebar">
     <div class="brand-header">
+      <button class="sidebar-close" onclick="toggleSidebar(false)" aria-label="Show map"><i class="fa-solid fa-map"></i> Show Map</button>
       <div class="brand-badge">
         <i class="fa-solid fa-compass"></i> Route Expedition
       </div>
@@ -1542,6 +1561,7 @@
       const shouldOpen = forceState !== undefined ? forceState : !sb.classList.contains('open');
       sb.classList.toggle('open', shouldOpen);
       bd.classList.toggle('show', shouldOpen);
+      document.body.classList.toggle('sidebar-open', shouldOpen);
     }
 
     // ---------- Init ----------
