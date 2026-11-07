@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Meghalaya & Kamakhya Expedition | Dec 2026</title>
   
-  <!-- Google Fonts & Leaflet CSS -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
@@ -159,7 +158,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 8px;
     }
+    .day-card-header .day-route-meta, .day-card-header .day-nav-btn { flex-basis: 100%; justify-content: center; }
+    .day-card-header .day-route-meta { justify-content: flex-start; }
 
     .day-title {
       font-weight: 700;
@@ -272,11 +275,115 @@
     .map-link-btn:hover { text-decoration: underline; }
 
     /* Map Styles */
-    #map {
+    #mapWrap {
       flex: 1;
       height: 100%;
       position: relative;
+      min-width: 0;
     }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Search bar */
+    .top-tools {
+      position: absolute; top: 14px; left: 16px; z-index: 1000;
+      width: min(440px, calc(100% - 300px));
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .search-bar {
+      display: flex; align-items: center; gap: 8px;
+      background: white; border-radius: 28px; padding: 4px 6px 4px 16px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.15); border: 1px solid var(--border);
+      min-height: 48px;
+    }
+    .search-ico { color: var(--slate); font-size: 15px; }
+    #placeSearchHost { flex: 1; min-width: 0; }
+    #placeSearchHost gmp-place-autocomplete, #placeAutocomplete {
+      width: 100%; color-scheme: light; border: none;
+      --gmp-mat-color-surface: #ffffff;
+    }
+    .legacy-search-input {
+      width: 100%; border: none; outline: none; font-size: 15px; padding: 10px 4px; background: transparent;
+    }
+    .search-off { font-size: 12px; color: var(--slate); }
+    .search-clear {
+      display: none; width: 34px; height: 34px; border-radius: 50%; border: none;
+      background: #f1f5f9; color: var(--dark); cursor: pointer; align-items: center; justify-content: center;
+    }
+    .pac-container { z-index: 2000 !important; border-radius: 12px; margin-top: 6px; }
+
+    /* Pulsing searched place */
+    .pulse-marker { position: relative; width: 22px; height: 22px; }
+    .pulse-core {
+      position: absolute; inset: 3px; border-radius: 50%;
+      background: #f97316; border: 3px solid white; box-shadow: 0 0 10px rgba(249,115,22,0.9);
+      animation: blink 1.2s ease-in-out infinite;
+    }
+    .pulse-ring {
+      position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+      border-radius: 50%; background: rgba(249,115,22,0.45);
+      animation: pulse 2s ease-out infinite;
+    }
+    .pulse-ring.r2 { animation-delay: 1s; }
+    @keyframes pulse { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(4.5); opacity: 0; } }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+
+    /* Re-route panel */
+    .reroute-panel {
+      background: white; border-radius: 16px; border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15); overflow: hidden;
+      max-height: calc(100vh - 110px); display: flex; flex-direction: column;
+    }
+    .rr-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; border-bottom: 1px solid var(--border); }
+    .rr-dot { width: 12px; height: 12px; border-radius: 50%; background: #f97316; box-shadow: 0 0 0 4px rgba(249,115,22,0.25); flex-shrink: 0; }
+    .rr-place { flex: 1; min-width: 0; }
+    .rr-place b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rr-place small { display: block; font-size: 11.5px; color: var(--slate); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rr-chev { color: var(--slate); transition: transform .2s; }
+    .reroute-panel.collapsed .rr-body { display: none; }
+    .reroute-panel.collapsed .rr-chev { transform: rotate(180deg); }
+    .rr-body { padding: 12px 14px; overflow-y: auto; }
+    .rr-controls { display: flex; gap: 8px; }
+    .rr-controls select {
+      flex: 1; min-width: 0; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border);
+      font-size: 13px; font-weight: 600; background: #f8fafc; color: var(--dark);
+    }
+    .rr-btn {
+      display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer;
+      background: #f97316; color: white; font-weight: 800; font-size: 13px; padding: 9px 14px; border-radius: 10px;
+    }
+    .rr-btn:disabled { opacity: .7; cursor: wait; }
+    .rr-compare { display: grid; grid-template-columns: 1fr auto 1fr 1fr; gap: 6px; align-items: center; margin-top: 12px; }
+    .rr-compare > div { background: #f8fafc; border-radius: 10px; padding: 8px; text-align: center; }
+    .rr-compare .rr-arrow { background: none; color: var(--slate); padding: 0; }
+    .rr-compare span { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--slate); }
+    .rr-compare b { display: block; font-size: 13.5px; }
+    .rr-compare small { font-size: 11.5px; color: var(--slate); font-weight: 600; }
+    .rr-delta { background: #fff7ed !important; }
+    .rr-delta b { color: #c2410c; }
+    .rr-delta.warn { background: #fef2f2 !important; }
+    .rr-delta.warn b { color: #b91c1c; }
+    .rr-approx { font-size: 11px; color: var(--slate); }
+    .rr-title { margin: 12px 0 6px; font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--slate); }
+    .rr-list { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+    .rr-list li { font-size: 13px; font-weight: 600; }
+    .rr-list li span { margin-right: 6px; }
+    .rr-list li small { color: var(--slate); font-weight: 600; font-size: 11px; }
+    .rr-list li.is-new { color: #c2410c; }
+    .rr-list li em { font-style: normal; font-size: 10px; font-weight: 800; background: #f97316; color: white; padding: 1px 6px; border-radius: 10px; }
+    .rr-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .rr-go {
+      flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      background: var(--accent); color: white; text-decoration: none; font-weight: 700; font-size: 13px; padding: 9px 12px; border-radius: 10px;
+    }
+    .rr-reset {
+      display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: white;
+      font-weight: 700; font-size: 13px; padding: 9px 12px; border-radius: 10px; cursor: pointer; color: var(--dark);
+    }
+    .day-route-meta { margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--slate); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .full-summary { padding: 14px 16px; }
 
     /* Floating Navigation Controls */
     .mobile-nav-toggle {
@@ -316,12 +423,45 @@
       border: 1px solid rgba(226, 232, 240, 0.8);
     }
 
-    /* Custom Leaflet Popup */
-    .custom-popup .leaflet-popup-content-wrapper {
-      border-radius: 14px;
-      padding: 4px 6px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    /* Google Maps extras */
+    .gm-marker {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 800; font-size: 11px; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: transform .15s;
     }
+    .gm-marker:hover { transform: scale(1.15); }
+    .gm-me {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #2563eb; border: 3px solid white;
+      box-shadow: 0 0 0 6px rgba(37,99,235,0.25);
+    }
+    .map-fab {
+      position: absolute; right: 16px; bottom: 120px; z-index: 999;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: white; border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--dark); cursor: pointer; font-size: 16px;
+    }
+    .map-fab.active { color: #2563eb; }
+    .map-error {
+      position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+      background: #f8fafc; z-index: 998; padding: 24px; text-align: center;
+      color: var(--slate); font-size: 14px; font-weight: 600;
+    }
+    .day-nav-btn {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+      font-size: 12px; font-weight: 700; color: white; text-decoration: none;
+      padding: 6px 12px; border-radius: 20px;
+    }
+    .stop-links { display: flex; gap: 14px; flex-wrap: wrap; }
+    .popup-card { max-width: 240px; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .popup-card .popup-links { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* Popup card */
     .popup-card h4 {
       font-size: 14px;
       font-weight: 800;
@@ -358,7 +498,12 @@
       }
       .mobile-nav-toggle {
         display: flex;
+        top: 16px;
       }
+      .top-tools {
+        left: 70px; right: 12px; width: auto;
+      }
+      .group-pill { display: none; }
       .backdrop {
         position: absolute;
         inset: 0;
@@ -409,15 +554,15 @@
     <!-- Filter Buttons -->
     <div class="filter-wrapper">
       <div class="chip-group">
-        <button class="filter-btn active" onclick="setDayFilter('all', this)">
+        <button class="filter-btn active" data-day="all" onclick="setDayFilter('all', this)">
           <i class="fa-solid fa-route"></i> Full Circuit
         </button>
-        <button class="filter-btn" onclick="setDayFilter(1, this)">Day 1</button>
-        <button class="filter-btn" onclick="setDayFilter(2, this)">Day 2</button>
-        <button class="filter-btn" onclick="setDayFilter(3, this)">Day 3</button>
-        <button class="filter-btn" onclick="setDayFilter(4, this)">Day 4</button>
-        <button class="filter-btn" onclick="setDayFilter(5, this)">Day 5</button>
-        <button class="filter-btn" onclick="setDayFilter(6, this)">Day 6</button>
+        <button class="filter-btn" data-day="1" onclick="setDayFilter(1, this)">Day 1</button>
+        <button class="filter-btn" data-day="2" onclick="setDayFilter(2, this)">Day 2</button>
+        <button class="filter-btn" data-day="3" onclick="setDayFilter(3, this)">Day 3</button>
+        <button class="filter-btn" data-day="4" onclick="setDayFilter(4, this)">Day 4</button>
+        <button class="filter-btn" data-day="5" onclick="setDayFilter(5, this)">Day 5</button>
+        <button class="filter-btn" data-day="6" onclick="setDayFilter(6, this)">Day 6</button>
       </div>
     </div>
 
@@ -428,10 +573,51 @@
   </aside>
 
   <!-- Interactive Map View -->
-  <main id="map"></main>
+  <div id="mapWrap">
+    <main id="map"></main>
 
-  <!-- Leaflet & App JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Search + Re-route -->
+    <div class="top-tools">
+      <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass search-ico"></i>
+        <div id="placeSearchHost"></div>
+        <button id="searchClear" class="search-clear" onclick="clearSearch()" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="reroute-panel" id="reroutePanel" hidden>
+        <div class="rr-head" onclick="toggleRerouteBody()">
+          <span class="rr-dot"></span>
+          <div class="rr-place">
+            <b id="rrPlaceName"></b>
+            <small id="rrPlaceAddr"></small>
+          </div>
+          <i class="fa-solid fa-chevron-up rr-chev"></i>
+        </div>
+        <div class="rr-body">
+          <div class="rr-controls">
+            <select id="rerouteDay" aria-label="Day to re-route"></select>
+            <button id="rerouteBtn" class="rr-btn" onclick="rerouteDay()"><i class="fa-solid fa-shuffle"></i> Re-route</button>
+          </div>
+          <div id="rrResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-error" id="mapError"></div>
+    <button class="map-fab" id="locateBtn" onclick="toggleLocate()" aria-label="Show my location">
+      <i class="fa-solid fa-location-crosshairs"></i>
+    </button>
+  </div>
+
+  <!-- Runtime config (GOOGLE_MAPS_API_KEY from server env) -->
+  <script src="/config.js"></script>
+  <script>
+    // Google Maps dynamic library loader
+    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+      key: (window.APP_CONFIG || {}).googleMapsApiKey || "",
+      v: "weekly",
+      region: "IN"
+    });
+  </script>
   <script>
     // Itinerary & Location GeoData
     const tourData = [
@@ -621,73 +807,187 @@
       }
     ];
 
-    // Initialize Map with CartoDB Voyager tiles (clean, beautiful, no token needed)
-    const map = L.map('map', {
-      zoomControl: false
-    }).setView([25.6, 91.75], 9);
-
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    // Free, beautiful, rock-solid basemap layers (NO API KEY EVER REQUIRED)
-    const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19
-    });
-
-    const esriWorldTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, METI, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community',
-      maxZoom: 18
-    });
-
-    const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-      maxZoom: 18
-    });
-
-    // Default to clean World Topo Map (stunning mountain ridges of Meghalaya!)
-    esriWorldTopo.addTo(map);
-
-    const baseMaps = {
-      "⛰️ Mountain Topo": esriWorldTopo,
-      "🗺️ Detailed Roads": osmStandard,
-      "🛰️ Satellite Imagery": esriSatellite
-    };
-
-    L.control.layers(baseMaps, null, { position: 'bottomleft' }).addTo(map);
-
+    const CFG = window.APP_CONFIG || {};
+    let map, infoWindow, AdvMarker, PinEl, RouteLib = null, dirService = null;
     let activeMarkers = [];
     let activePolylines = [];
+    let rerouteLayers = [];
+    let meMarker = null, watchId = null;
+    let searchMarker = null, searchedPlace = null;
+    let currentDay = 'all';
+    let plotToken = 0;
+    const routeCache = new Map();
+    let mapsReadyResolve;
+    const mapsReady = new Promise(r => { mapsReadyResolve = r; });
 
-    // Custom Marker Creator
-    function createCustomMarker(color, label) {
-      return L.divIcon({
-        className: 'custom-div-icon',
-        html: `<div style="
-          background: ${color};
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          border: 3px solid white;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 800;
-          font-size: 11px;">${label}</div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14]
-      });
+    const ll = c => ({ lat: c[0], lng: c[1] });
+    const cstr = c => `${c[0]},${c[1]}`;
+    const esc = t => String(t ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    const num = v => (typeof v === 'function' ? v() : v);
+    const fmtKm = m => m == null ? '—' : (m / 1000).toFixed(m < 10000 ? 1 : 0) + ' km';
+    const fmtDur = s => {
+      if (s == null) return '—';
+      const h = Math.floor(s / 3600), mn = Math.round((s % 3600) / 60);
+      return h ? `${h}h ${mn}m` : `${mn}m`;
+    };
+    const fmtDelta = (v, f) => (v >= 0 ? '+' : '−') + f(Math.abs(v));
+    const stopDirUrl = c => `https://www.google.com/maps/dir/?api=1&destination=${cstr(c)}&travelmode=driving`;
+    function routeUrl(coordsList) {
+      const pts = coordsList.map(cstr);
+      if (pts.length < 2) return stopDirUrl(coordsList[0]);
+      const wp = pts.slice(1, -1).join('|');
+      return `https://www.google.com/maps/dir/?api=1&origin=${pts[0]}&destination=${pts[pts.length - 1]}`
+        + (wp ? `&waypoints=${encodeURIComponent(wp)}` : '') + '&travelmode=driving';
+    }
+    const dayRouteUrl = day => routeUrl(day.stops.map(s => s.coords));
+    function haversine(a, b) {
+      const R = 6371000, toR = x => x * Math.PI / 180;
+      const dLat = toR(b[0] - a[0]), dLng = toR(b[1] - a[1]);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(toR(a[0])) * Math.cos(toR(b[0])) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
     }
 
-    // Render Sidebar Cards
+    function showMapError(msg) {
+      const el = document.getElementById('mapError');
+      el.innerHTML = `<div><i class="fa-solid fa-map-location-dot" style="font-size:28px;margin-bottom:10px;display:block;"></i>${msg}</div>`;
+      el.style.display = 'flex';
+    }
+    window.gm_authFailure = () => showMapError('Google Maps authentication failed. Check GOOGLE_MAPS_API_KEY, billing and allowed referrers.');
+
+    // ---------- Init ----------
+    async function initMap() {
+      if (!CFG.googleMapsApiKey) {
+        showMapError('Google Maps API key missing. Set GOOGLE_MAPS_API_KEY in Railway variables.');
+        mapsReadyResolve();
+        return;
+      }
+      try {
+        const { Map, InfoWindow } = await google.maps.importLibrary('maps');
+        const markerLib = await google.maps.importLibrary('marker');
+        AdvMarker = markerLib.AdvancedMarkerElement;
+        PinEl = markerLib.PinElement;
+        try { RouteLib = (await google.maps.importLibrary('routes')).Route || null; } catch (e) { RouteLib = null; }
+
+        map = new Map(document.getElementById('map'), {
+          center: { lat: 25.6, lng: 91.75 },
+          zoom: 9,
+          mapId: CFG.googleMapsMapId || 'DEMO_MAP_ID',
+          mapTypeControl: true,
+          mapTypeControlOptions: {
+            mapTypeIds: ['roadmap', 'terrain', 'satellite', 'hybrid'],
+            position: google.maps.ControlPosition.LEFT_BOTTOM
+          },
+          streetViewControl: true,
+          streetViewControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+          fullscreenControl: false,
+          zoomControl: true,
+          zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+          gestureHandling: 'greedy',
+          clickableIcons: true
+        });
+        infoWindow = new InfoWindow({ maxWidth: 280 });
+        mapsReadyResolve();
+        plotMap(currentDay);
+        initSearch();
+      } catch (err) {
+        console.error(err);
+        showMapError('Google Maps failed to load. Check API key and network.');
+        mapsReadyResolve();
+      }
+    }
+
+    // ---------- Routing (Routes API → Directions → straight line) ----------
+    async function computeRoute(coordsList, optimize = false) {
+      const key = coordsList.map(cstr).join(';') + (optimize ? '|opt' : '');
+      if (routeCache.has(key)) return routeCache.get(key);
+      const p = (async () => {
+        await mapsReady;
+        const pts = coordsList.map(ll);
+        const mid = pts.slice(1, -1);
+        if (RouteLib && RouteLib.computeRoutes) {
+          try {
+            const req = {
+              origin: pts[0],
+              destination: pts[pts.length - 1],
+              travelMode: 'DRIVING',
+              fields: ['path', 'distanceMeters', 'durationMillis', 'optimizedIntermediateWaypointIndices']
+            };
+            if (mid.length) req.intermediates = mid.map(location => ({ location }));
+            if (optimize && mid.length > 1) req.optimizeWaypointOrder = true;
+            const { routes } = await RouteLib.computeRoutes(req);
+            const r = routes && routes[0];
+            if (r && r.path && r.path.length) {
+              const order = r.optimizedIntermediateWaypointIndices;
+              return {
+                path: r.path.map(q => ({ lat: num(q.lat), lng: num(q.lng) })),
+                distance: r.distanceMeters ?? null,
+                duration: r.durationMillis != null ? r.durationMillis / 1000 : null,
+                order: Array.isArray(order) && order.length === mid.length && order[0] !== -1 ? order : null,
+                road: true
+              };
+            }
+          } catch (e) { console.warn('Routes API failed, trying Directions', e); }
+        }
+        try {
+          if (!dirService) dirService = new google.maps.DirectionsService();
+          const res = await dirService.route({
+            origin: pts[0],
+            destination: pts[pts.length - 1],
+            waypoints: mid.map(location => ({ location, stopover: true })),
+            optimizeWaypoints: optimize && mid.length > 1,
+            travelMode: google.maps.TravelMode.DRIVING
+          });
+          const r = res.routes[0];
+          return {
+            path: r.overview_path.map(q => ({ lat: q.lat(), lng: q.lng() })),
+            distance: r.legs.reduce((a, l) => a + (l.distance ? l.distance.value : 0), 0),
+            duration: r.legs.reduce((a, l) => a + (l.duration ? l.duration.value : 0), 0),
+            order: optimize ? r.waypoint_order : null,
+            road: true
+          };
+        } catch (e) { console.warn('Directions failed, using straight line', e); }
+        let dist = 0;
+        for (let i = 1; i < coordsList.length; i++) dist += haversine(coordsList[i - 1], coordsList[i]);
+        return { path: pts, distance: dist * 1.4, duration: dist * 1.4 / 8.3, order: null, road: false };
+      })();
+      routeCache.set(key, p);
+      p.then(r => { if (!r.road) routeCache.delete(key); });
+      return p;
+    }
+
+    function drawPath(path, opts) {
+      const line = new google.maps.Polyline({ map, path, ...opts });
+      return line;
+    }
+    const arrowIcons = color => [{
+      icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW, scale: 2.6, strokeColor: '#ffffff', strokeWeight: 2, strokeOpacity: 1 },
+      offset: '40px', repeat: '120px'
+    }];
+    const dashIcons = (color, op = 0.9) => [{
+      icon: { path: 'M 0,-1 0,1', strokeOpacity: op, strokeColor: color, scale: 3 },
+      offset: '0', repeat: '14px'
+    }];
+
+    // ---------- Markers ----------
+    function pinContent(color, label, scale = 1.1) {
+      if (PinEl) {
+        try {
+          const pin = new PinEl({ background: color, borderColor: '#ffffff', glyphColor: '#ffffff', glyph: String(label), scale });
+          return pin.element;
+        } catch (e) { /* fall through */ }
+      }
+      const el = document.createElement('div');
+      el.className = 'gm-marker';
+      el.style.background = color;
+      el.textContent = label;
+      return el;
+    }
+
+    // ---------- Sidebar ----------
     function renderSidebar(filteredDay = 'all') {
       const container = document.getElementById('itineraryContent');
       container.innerHTML = '';
-
-      const daysToRender = filteredDay === 'all' 
-        ? tourData 
-        : tourData.filter(d => d.day === parseInt(filteredDay));
+      const daysToRender = filteredDay === 'all' ? tourData : tourData.filter(d => d.day === parseInt(filteredDay));
 
       daysToRender.forEach(day => {
         const card = document.createElement('div');
@@ -696,22 +996,29 @@
           <div class="day-card-header">
             <div class="day-title">
               <span style="color: ${day.color};"><i class="fa-solid fa-calendar-day"></i></span>
-              <span>Day ${day.day}: ${day.title}</span>
+              <span>Day ${day.day}: ${esc(day.title)}</span>
             </div>
-            <div class="day-date">${day.date}</div>
+            <div class="day-date">${esc(day.date)}</div>
+            <div class="day-route-meta" id="meta-day-${day.day}"><i class="fa-solid fa-spinner fa-spin"></i> Calculating road route…</div>
+            <a class="day-nav-btn" style="background:${day.color};" href="${dayRouteUrl(day)}" target="_blank" rel="noopener">
+              <i class="fa-solid fa-diamond-turn-right"></i> Navigate Day ${day.day} in Google Maps
+            </a>
           </div>
           <ul class="stop-list">
             ${day.stops.map((stop, idx) => `
-              <li class="stop-item" onclick="focusLocation(${stop.coords[0]}, ${stop.coords[1]}, '${stop.name}')">
+              <li class="stop-item" onclick="focusStop(${day.day}, ${idx})">
                 <div class="stop-dot" style="background: ${day.color};"></div>
                 <div class="stop-header">
-                  <span class="stop-name">${stop.name}</span>
-                  <span class="badge-trek ${stop.trekClass}">${stop.trek}</span>
+                  <span class="stop-name">${esc(stop.name)}</span>
+                  <span class="badge-trek ${stop.trekClass}">${esc(stop.trek)}</span>
                 </div>
-                <p class="stop-desc">${stop.desc}</p>
+                <p class="stop-desc">${esc(stop.desc)}</p>
                 <div class="stop-links">
-                  <a class="map-link-btn" href="${stop.mapLink}" target="_blank" onclick="event.stopPropagation()">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Open in Maps / Photos
+                  <a class="map-link-btn" href="${stop.mapLink}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Maps / Photos
+                  </a>
+                  <a class="map-link-btn" href="${stopDirUrl(stop.coords)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+                    <i class="fa-solid fa-diamond-turn-right"></i> Directions
                   </a>
                 </div>
               </li>
@@ -719,110 +1026,417 @@
           </ul>
         `;
         container.appendChild(card);
+        computeRoute(day.stops.map(s => s.coords)).then(r => setDayMeta(day, r));
       });
-    }
 
-    // Plot Route & Markers on Map
-    function plotMap(filteredDay = 'all') {
-      // Clear old layers
-      activeMarkers.forEach(m => map.removeLayer(m));
-      activePolylines.forEach(p => map.removeLayer(p));
-      activeMarkers = [];
-      activePolylines = [];
-
-      const bounds = L.latLngBounds([]);
-      const daysToPlot = filteredDay === 'all' 
-        ? tourData 
-        : tourData.filter(d => d.day === parseInt(filteredDay));
-
-      daysToPlot.forEach(day => {
-        const latlngs = [];
-
-        day.stops.forEach((stop, index) => {
-          const marker = L.marker(stop.coords, {
-            icon: createCustomMarker(day.color, day.stops.length > 1 ? index + 1 : 'D' + day.day)
-          }).addTo(map);
-
-          marker.bindPopup(`
-            <div class="popup-card">
-              <div style="font-size: 11px; font-weight: 700; color: ${day.color}; text-transform: uppercase;">Day ${day.day} • ${day.date}</div>
-              <h4>${stop.name}</h4>
-              <p>${stop.desc}</p>
-              <div style="margin-bottom: 6px;"><span class="badge-trek ${stop.trekClass}">${stop.trek}</span></div>
-              <a href="${stop.mapLink}" target="_blank">View on Google Maps &rarr;</a>
-            </div>
-          `, { className: 'custom-popup' });
-
-          activeMarkers.push(marker);
-          latlngs.push(stop.coords);
-          bounds.extend(stop.coords);
+      if (filteredDay === 'all') {
+        const all = [];
+        tourData.forEach(d => d.stops.forEach(s => all.push(s.coords)));
+        const tot = document.createElement('div');
+        tot.className = 'day-card full-summary';
+        tot.innerHTML = `
+          <div class="day-title"><i class="fa-solid fa-route" style="color:var(--primary)"></i><span>Full Itinerary (${tourData.length} days)</span></div>
+          <div class="day-route-meta" id="meta-full"><i class="fa-solid fa-spinner fa-spin"></i> Calculating…</div>`;
+        container.prepend(tot);
+        Promise.all(tourData.map(d => computeRoute(d.stops.map(s => s.coords)))).then(rs => {
+          const el = document.getElementById('meta-full');
+          if (!el) return;
+          const dist = rs.reduce((a, r) => a + (r.distance || 0), 0);
+          const dur = rs.reduce((a, r) => a + (r.duration || 0), 0);
+          el.innerHTML = `<i class="fa-solid fa-road"></i> ${fmtKm(dist)} sightseeing drive • <i class="fa-regular fa-clock"></i> ${fmtDur(dur)}${rs.some(r => !r.road) ? ' (approx.)' : ''}`;
         });
-
-        // Add Polyline connecting stops of that day
-        if (latlngs.length > 1) {
-          const line = L.polyline(latlngs, {
-            color: day.color,
-            weight: 4.5,
-            opacity: 0.85,
-            dashArray: filteredDay === 'all' ? '6, 8' : null
-          }).addTo(map);
-          activePolylines.push(line);
-        }
-      });
-
-      // Fit map to view all points
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
       }
     }
 
-    // Filter Trigger
+    function setDayMeta(day, r) {
+      const el = document.getElementById(`meta-day-${day.day}`);
+      if (!el) return;
+      if (day.stops.length < 2) { el.innerHTML = '<i class="fa-solid fa-location-dot"></i> Single stop'; return; }
+      el.innerHTML = `<i class="fa-solid fa-road"></i> ${fmtKm(r.distance)} • <i class="fa-regular fa-clock"></i> ${fmtDur(r.duration)} drive${r.road ? '' : ' (approx.)'}`;
+    }
+
+    function popupHtml(day, stop) {
+      return `
+        <div class="popup-card">
+          <div style="font-size: 11px; font-weight: 700; color: ${day.color}; text-transform: uppercase;">Day ${day.day} • ${esc(day.date)}</div>
+          <h4>${esc(stop.name)}</h4>
+          <p>${esc(stop.desc)}</p>
+          <div style="margin-bottom: 6px;"><span class="badge-trek ${stop.trekClass}">${esc(stop.trek)}</span></div>
+          <div class="popup-links">
+            <a href="${stop.mapLink}" target="_blank" rel="noopener">Photos &rarr;</a>
+            <a href="${stopDirUrl(stop.coords)}" target="_blank" rel="noopener">Directions &rarr;</a>
+          </div>
+        </div>`;
+    }
+
+    // ---------- Plot ----------
+    function clearLayers() {
+      activeMarkers.forEach(m => { m.marker.map = null; });
+      activePolylines.forEach(p => p.setMap(null));
+      activeMarkers = [];
+      activePolylines = [];
+    }
+
+    function plotMap(filteredDay = 'all') {
+      if (!map) return;
+      const token = ++plotToken;
+      infoWindow.close();
+      clearLayers();
+      clearReroute();
+
+      const bounds = new google.maps.LatLngBounds();
+      const isAll = filteredDay === 'all';
+      const daysToPlot = isAll ? tourData : tourData.filter(d => d.day === parseInt(filteredDay));
+
+      daysToPlot.forEach(day => {
+        day.stops.forEach((stop, index) => {
+          const label = isAll ? `${day.day}.${index + 1}` : (index + 1);
+          const marker = new AdvMarker({
+            map,
+            position: ll(stop.coords),
+            title: `Day ${day.day} • ${stop.name}`,
+            content: pinContent(day.color, day.stops.length > 1 ? label : 'D' + day.day, isAll ? 1 : 1.25),
+            zIndex: 100
+          });
+          marker.addListener('click', () => openStop(day, stop, marker));
+          activeMarkers.push({ marker, day: day.day, idx: index });
+          bounds.extend(ll(stop.coords));
+        });
+
+        if (day.stops.length > 1) {
+          const coords = day.stops.map(s => s.coords);
+          const placeholder = drawPath(coords.map(ll), { strokeOpacity: 0, icons: dashIcons(day.color, 0.5) });
+          activePolylines.push(placeholder);
+          computeRoute(coords).then(r => {
+            if (token !== plotToken) return;
+            placeholder.setMap(null);
+            activePolylines.push(drawPath(r.path, { strokeColor: '#ffffff', strokeOpacity: 0.9, strokeWeight: isAll ? 7 : 9, zIndex: 1 }));
+            activePolylines.push(drawPath(r.path, {
+              strokeColor: day.color, strokeOpacity: 0.95, strokeWeight: isAll ? 4.5 : 6, zIndex: 2,
+              icons: isAll ? [] : arrowIcons(day.color)
+            }));
+          });
+        }
+      });
+
+      // Transfers between days (full circuit)
+      if (isAll) {
+        for (let i = 1; i < tourData.length; i++) {
+          const a = tourData[i - 1].stops[tourData[i - 1].stops.length - 1].coords;
+          const b = tourData[i].stops[0].coords;
+          if (haversine(a, b) < 300) continue;
+          computeRoute([a, b]).then(r => {
+            if (token !== plotToken) return;
+            activePolylines.push(drawPath(r.path, { strokeOpacity: 0, icons: dashIcons('#475569', 0.7), zIndex: 0 }));
+          });
+        }
+      }
+
+      if (!bounds.isEmpty()) {
+        map.fitBounds(bounds, 60);
+        google.maps.event.addListenerOnce(map, 'idle', () => { if (map.getZoom() > 13) map.setZoom(13); });
+      }
+    }
+
+    function openStop(day, stop, marker) {
+      infoWindow.setContent(popupHtml(day, stop));
+      infoWindow.open({ map, anchor: marker });
+    }
+
     function setDayFilter(day, btn) {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
+      currentDay = day;
       renderSidebar(day);
       plotMap(day);
-
-      // On mobile, keep sidebar open briefly or close if user taps full map
-      if (window.innerWidth <= 900 && day !== 'all') {
-        toggleSidebar(false);
+      if (searchedPlace) {
+        placeSearchMarker();
+        if (day !== 'all') document.getElementById('rerouteDay').value = String(day);
       }
+      if (window.innerWidth <= 900 && day !== 'all') toggleSidebar(false);
     }
 
-    // Pan to specific landmark
-    function focusLocation(lat, lng, name) {
-      map.flyTo([lat, lng], 13, { duration: 1.2 });
-      activeMarkers.forEach(m => {
-        const c = m.getLatLng();
-        if (Math.abs(c.lat - lat) < 0.001 && Math.abs(c.lng - lng) < 0.001) {
-          m.openPopup();
+    function focusStop(dayNum, idx) {
+      const day = tourData.find(d => d.day === dayNum);
+      const stop = day && day.stops[idx];
+      if (!stop || !map) return;
+      map.panTo(ll(stop.coords));
+      map.setZoom(13);
+      const m = activeMarkers.find(x => x.day === dayNum && x.idx === idx);
+      if (m) openStop(day, stop, m.marker);
+      if (window.innerWidth <= 900) toggleSidebar(false);
+    }
+
+    // ---------- Search ----------
+    async function initSearch() {
+      const host = document.getElementById('placeSearchHost');
+      const bias = { center: { lat: 25.6, lng: 91.75 }, radius: 50000 };
+      try {
+        const placesLib = await google.maps.importLibrary('places');
+        if (placesLib.PlaceAutocompleteElement) {
+          const pac = new placesLib.PlaceAutocompleteElement({ includedRegionCodes: ['in'], locationBias: bias });
+          pac.id = 'placeAutocomplete';
+          pac.setAttribute('placeholder', 'Search any place in Meghalaya / Assam…');
+          host.appendChild(pac);
+          const handle = async place => {
+            try {
+              await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'location'] });
+              const loc = place.location;
+              if (!loc) return;
+              onPlaceSelected({
+                name: num(place.displayName) || 'Selected place',
+                address: place.formattedAddress || '',
+                coords: [num(loc.lat), num(loc.lng)]
+              });
+            } catch (e) { console.error(e); alert('Could not load this place. Enable "Places API (New)" for the key.'); }
+          };
+          pac.addEventListener('gmp-select', ev => { if (ev.placePrediction) handle(ev.placePrediction.toPlace()); });
+          pac.addEventListener('gmp-placeselect', ev => { if (ev.place) handle(ev.place); });
+          pac.addEventListener('gmp-error', ev => console.warn('Autocomplete error', ev));
+          return;
         }
-      });
-      if (window.innerWidth <= 900) {
-        toggleSidebar(false);
+        throw new Error('PlaceAutocompleteElement unavailable');
+      } catch (e) {
+        console.warn('New Places autocomplete unavailable, using legacy', e);
+        try {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'legacy-search-input';
+          input.placeholder = 'Search any place in Meghalaya / Assam…';
+          host.innerHTML = '';
+          host.appendChild(input);
+          const ac = new google.maps.places.Autocomplete(input, {
+            componentRestrictions: { country: 'in' },
+            fields: ['name', 'formatted_address', 'geometry'],
+            bounds: new google.maps.Circle(bias).getBounds(),
+            strictBounds: false
+          });
+          ac.addListener('place_changed', () => {
+            const p = ac.getPlace();
+            if (!p.geometry || !p.geometry.location) return;
+            onPlaceSelected({ name: p.name, address: p.formatted_address || '', coords: [p.geometry.location.lat(), p.geometry.location.lng()] });
+          });
+        } catch (e2) {
+          console.error(e2);
+          host.innerHTML = '<span class="search-off">Search unavailable — enable Places API for this key.</span>';
+        }
       }
     }
 
-    // Mobile Sidebar Drawer Toggle
+    function nearestDay(coords) {
+      let best = tourData[0], bestD = Infinity;
+      tourData.forEach(d => d.stops.forEach(s => {
+        const dd = haversine(coords, s.coords);
+        if (dd < bestD) { bestD = dd; best = d; }
+      }));
+      return best.day;
+    }
+
+    function placeSearchMarker() {
+      if (searchMarker) searchMarker.map = null;
+      const el = document.createElement('div');
+      el.className = 'pulse-marker';
+      el.innerHTML = '<span class="pulse-ring"></span><span class="pulse-ring r2"></span><span class="pulse-core"></span>';
+      searchMarker = new AdvMarker({ map, position: ll(searchedPlace.coords), content: el, title: searchedPlace.name, zIndex: 9000 });
+      searchMarker.addListener('click', () => {
+        infoWindow.setContent(`<div class="popup-card"><div style="font-size:11px;font-weight:700;color:#f97316;text-transform:uppercase;">Searched place</div><h4>${esc(searchedPlace.name)}</h4><p>${esc(searchedPlace.address)}</p><div class="popup-links"><a href="${stopDirUrl(searchedPlace.coords)}" target="_blank" rel="noopener">Directions &rarr;</a></div></div>`);
+        infoWindow.open({ map, anchor: searchMarker });
+      });
+    }
+
+    function onPlaceSelected(place) {
+      searchedPlace = place;
+      clearReroute();
+      placeSearchMarker();
+      map.panTo(ll(place.coords));
+      if (map.getZoom() < 12) map.setZoom(12);
+      const sel = document.getElementById('rerouteDay');
+      sel.value = String(currentDay !== 'all' ? currentDay : nearestDay(place.coords));
+      document.getElementById('rrPlaceName').textContent = place.name;
+      document.getElementById('rrPlaceAddr').textContent = place.address;
+      document.getElementById('rrResult').innerHTML = '';
+      document.getElementById('reroutePanel').hidden = false;
+      document.getElementById('searchClear').style.display = 'flex';
+    }
+
+    function clearSearch() {
+      searchedPlace = null;
+      if (searchMarker) searchMarker.map = null;
+      searchMarker = null;
+      clearReroute();
+      if (map) plotMap(currentDay);
+      document.getElementById('reroutePanel').hidden = true;
+      document.getElementById('searchClear').style.display = 'none';
+      const pac = document.getElementById('placeAutocomplete');
+      if (pac) { try { pac.value = ''; } catch (e) {} }
+      const inp = document.querySelector('.legacy-search-input');
+      if (inp) inp.value = '';
+    }
+
+    // ---------- Re-route ----------
+    function clearReroute() {
+      rerouteLayers.forEach(l => { if (l.setMap) l.setMap(null); else l.map = null; });
+      rerouteLayers = [];
+    }
+
+    function cheapestInsertion(coords, p) {
+      if (coords.length < 2) return coords.length;
+      let bestI = coords.length, bestCost = haversine(coords[coords.length - 1], p);
+      for (let i = 1; i < coords.length; i++) {
+        const c = haversine(coords[i - 1], p) + haversine(p, coords[i]) - haversine(coords[i - 1], coords[i]);
+        if (c < bestCost) { bestCost = c; bestI = i; }
+      }
+      return bestI;
+    }
+
+    async function rerouteDay() {
+      if (!searchedPlace || !map) return;
+      const dayNum = parseInt(document.getElementById('rerouteDay').value);
+      const day = tourData.find(d => d.day === dayNum);
+      const btn = document.getElementById('rerouteBtn');
+      const out = document.getElementById('rrResult');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Calculating…';
+
+      if (String(currentDay) !== String(dayNum)) {
+        currentDay = dayNum;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.day === String(dayNum)));
+        renderSidebar(dayNum);
+        plotMap(dayNum);
+        placeSearchMarker();
+      }
+      clearReroute();
+
+      const stops = day.stops.map((s, i) => ({ name: s.name, coords: s.coords, isNew: false, orig: i + 1 }));
+      const newStop = { name: searchedPlace.name, coords: searchedPlace.coords, isNew: true, orig: null };
+      const origCoords = stops.map(s => s.coords);
+
+      // Keep start & end fixed, optimise the middle with the new place
+      let seq;
+      if (stops.length === 1) seq = [stops[0], newStop];
+      else {
+        const ins = cheapestInsertion(origCoords, newStop.coords);
+        seq = stops.slice(); seq.splice(ins, 0, newStop);
+        if (ins === stops.length) { /* appended at end */ }
+      }
+
+      try {
+        const [orig, firstTry] = await Promise.all([
+          stops.length > 1 ? computeRoute(origCoords) : Promise.resolve({ distance: 0, duration: 0, road: true, path: [] }),
+          computeRoute(seq.map(s => s.coords), seq.length > 3 && !seq[seq.length - 1].isNew)
+        ]);
+        let neu = firstTry;
+        if (neu.order && seq.length > 3) {
+          const mid = seq.slice(1, -1);
+          seq = [seq[0], ...neu.order.map(i => mid[i]), seq[seq.length - 1]];
+        }
+
+        // Draw: faded original + highlighted new route
+        activePolylines.forEach(p => p.setOptions({ strokeOpacity: 0.25 }));
+        rerouteLayers.push(drawPath(neu.path, { strokeColor: '#ffffff', strokeOpacity: 1, strokeWeight: 10, zIndex: 5 }));
+        rerouteLayers.push(drawPath(neu.path, { strokeColor: '#f97316', strokeOpacity: 1, strokeWeight: 6, zIndex: 6, icons: arrowIcons('#f97316') }));
+        seq.forEach((s, i) => {
+          if (s.isNew) return;
+          const m = new AdvMarker({ map, position: ll(s.coords), content: pinContent('#f97316', i + 1, 0.9), zIndex: 200, title: s.name });
+          rerouteLayers.push(m);
+        });
+        activeMarkers.forEach(m => { m.marker.map = null; });
+
+        const b = new google.maps.LatLngBounds();
+        seq.forEach(s => b.extend(ll(s.coords)));
+        map.fitBounds(b, { top: 170, bottom: 60, left: 60, right: 60 });
+
+        const dDist = (neu.distance || 0) - (orig.distance || 0);
+        const dDur = (neu.duration || 0) - (orig.duration || 0);
+        const approx = (!neu.road || !orig.road) ? ' <span class="rr-approx">(approx.)</span>' : '';
+        out.innerHTML = `
+          <div class="rr-compare">
+            <div><span>Original</span><b>${fmtKm(orig.distance)}</b><small>${fmtDur(orig.duration)}</small></div>
+            <div class="rr-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+            <div><span>New</span><b>${fmtKm(neu.distance)}</b><small>${fmtDur(neu.duration)}</small></div>
+            <div class="rr-delta ${dDur > 3600 ? 'warn' : ''}"><span>Change</span><b>${fmtDelta(dDist, fmtKm)}</b><small>${fmtDelta(dDur, fmtDur)}</small></div>
+          </div>${approx}
+          <div class="rr-title">New Day ${day.day} order</div>
+          <ol class="rr-list">
+            ${seq.map(s => `<li class="${s.isNew ? 'is-new' : ''}">
+              <span>${esc(s.name)}</span>
+              ${s.isNew ? '<em>NEW</em>' : (s.orig !== null ? `<small>was #${s.orig}</small>` : '')}
+            </li>`).join('')}
+          </ol>
+          <div class="rr-actions">
+            <a class="rr-go" href="${routeUrl(seq.map(s => s.coords))}" target="_blank" rel="noopener"><i class="fa-solid fa-diamond-turn-right"></i> Navigate new route</a>
+            <button class="rr-reset" onclick="resetReroute()"><i class="fa-solid fa-rotate-left"></i> Original</button>
+          </div>`;
+      } catch (e) {
+        console.error(e);
+        out.innerHTML = '<div class="rr-approx">Could not calculate route.</div>';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-shuffle"></i> Re-route';
+      }
+    }
+
+    function resetReroute() {
+      clearReroute();
+      plotMap(currentDay);
+      placeSearchMarker();
+      document.getElementById('rrResult').innerHTML = '';
+    }
+
+    function toggleRerouteBody() {
+      document.getElementById('reroutePanel').classList.toggle('collapsed');
+    }
+
+    // ---------- Live GPS ----------
+    function toggleLocate() {
+      const btn = document.getElementById('locateBtn');
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        if (meMarker) meMarker.map = null;
+        meMarker = null;
+        btn.classList.remove('active');
+        return;
+      }
+      if (!navigator.geolocation) { alert('Geolocation not supported on this device.'); return; }
+      if (!map) return;
+      btn.classList.add('active');
+      let first = true;
+      watchId = navigator.geolocation.watchPosition(pos => {
+        const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        if (!meMarker) {
+          const el = document.createElement('div');
+          el.className = 'gm-me';
+          meMarker = new AdvMarker({ map, position: p, content: el, title: 'You are here', zIndex: 9999 });
+        } else {
+          meMarker.position = p;
+        }
+        if (first) { map.panTo(p); map.setZoom(14); first = false; }
+      }, err => {
+        console.warn(err);
+        btn.classList.remove('active');
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        alert('Unable to get location. Allow location access and try again.');
+      }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
+    }
+
+    // ---------- Mobile drawer ----------
     function toggleSidebar(forceState) {
       const sb = document.getElementById('sidebar');
       const bd = document.getElementById('backdrop');
-      const isCurrentlyOpen = sb.classList.contains('open');
-      const shouldOpen = forceState !== undefined ? forceState : !isCurrentlyOpen;
-
-      if (shouldOpen) {
-        sb.classList.add('open');
-        bd.classList.add('show');
-      } else {
-        sb.classList.remove('open');
-        bd.classList.remove('show');
-      }
+      const shouldOpen = forceState !== undefined ? forceState : !sb.classList.contains('open');
+      sb.classList.toggle('open', shouldOpen);
+      bd.classList.toggle('show', shouldOpen);
     }
 
-    // Init
+    // ---------- Init ----------
+    (function initDaySelect() {
+      const sel = document.getElementById('rerouteDay');
+      sel.innerHTML = tourData.map(d => `<option value="${d.day}">Day ${d.day} — ${esc(d.title)}</option>`).join('');
+    })();
     renderSidebar('all');
-    plotMap('all');
+    initMap();
   </script>
 </body>
 </html>

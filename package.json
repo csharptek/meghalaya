@@ -1,12 +1,10 @@
 {
   "name": "meghalaya-kamakhya-map",
-  "version": "1.0.0",
-  "description": "Interactive day-wise map and itinerary for Meghalaya & Kamakhya tour",
-  "main": "index.html",
+  "version": "1.1.0",
+  "description": "Interactive day-wise Google Map and itinerary for Meghalaya & Kamakhya tour",
+  "main": "server.js",
+  "engines": { "node": ">=18" },
   "scripts": {
-    "start": "npx serve -s . -l $PORT"
-  },
-  "dependencies": {
-    "serve": "^14.2.4"
+    "start": "node server.js"
   }
 }
