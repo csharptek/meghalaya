@@ -419,6 +419,10 @@
       border: 6px solid transparent; border-top-color: var(--c); border-bottom: 0;
     }
     .start-marker { position: relative; }
+    .start-marker .sm-title { display: flex; align-items: center; gap: 5px; letter-spacing: .3px; }
+    .start-marker:not(.end-marker) { background: var(--c); color: white; }
+    .start-marker:not(.end-marker) small { color: rgba(255,255,255,0.92); }
+    .end-marker { --c: #dc2626; background: white; color: #dc2626; }
 
     /* Floating Navigation Controls */
     .mobile-nav-toggle {
@@ -1267,9 +1271,11 @@
         const stEl = document.createElement('div');
         stEl.className = 'start-marker' + (isAll ? ' compact' : '');
         stEl.style.setProperty('--c', day.color);
+        const pathAll = dayPath(day);
+        const sameEnd = pathAll.length < 2;
         stEl.innerHTML = isAll
           ? `<i class="fa-solid fa-flag"></i> D${day.day}`
-          : `<i class="fa-solid fa-flag"></i> Day ${day.day} start<small>${esc(st.name)}</small>`;
+          : `<span class="sm-title"><i class="fa-solid fa-flag"></i> ${sameEnd ? 'START / END' : 'START'}</span><small>${esc(st.name)}</small>`;
         const stMarker = new AdvMarker({ map, position: ll(st.coords), content: stEl, title: `Day ${day.day} start • ${st.name}`, zIndex: 150 + day.day });
         stMarker.addListener('click', () => {
           infoWindow.setContent(`<div class="popup-card"><div style="font-size:11px;font-weight:700;color:${day.color};text-transform:uppercase;">Day ${day.day} start • ${esc(day.date)}</div><h4>${esc(st.name)}</h4><p>${st.startOfFirst ? 'Trip starting point.' : 'Overnight stay from Day ' + (day.day - 1) + '. Day ' + day.day + ' departs from here.'}</p><div class="popup-links"><a href="${dayRouteUrl(day)}" target="_blank" rel="noopener">Navigate Day ${day.day} &rarr;</a></div></div>`);
@@ -1277,6 +1283,23 @@
         });
         activeMarkers.push({ marker: stMarker, day: day.day, idx: -1 });
         bounds.extend(ll(st.coords));
+
+        // End-of-day marker (day view) / trip end (full circuit)
+        const isTripEnd = isAll && day === tourData[tourData.length - 1];
+        if ((!isAll && !sameEnd) || isTripEnd) {
+          const en = pathAll[pathAll.length - 1];
+          const enEl = document.createElement('div');
+          enEl.className = 'start-marker end-marker' + (isAll ? ' compact' : '');
+          enEl.innerHTML = isAll
+            ? `<i class="fa-solid fa-flag-checkered"></i> Trip end`
+            : `<span class="sm-title"><i class="fa-solid fa-flag-checkered"></i> END</span><small>${esc(en.name)}</small>`;
+          const enMarker = new AdvMarker({ map, position: ll(en.coords), content: enEl, title: `Day ${day.day} end • ${en.name}`, zIndex: 160 + day.day });
+          enMarker.addListener('click', () => {
+            infoWindow.setContent(`<div class="popup-card"><div style="font-size:11px;font-weight:700;color:#dc2626;text-transform:uppercase;">${isAll ? 'Trip end' : 'Day ' + day.day + ' end'} • ${esc(day.date)}</div><h4>${esc(en.name)}</h4><p>${esc(en.desc || '')}</p><div class="popup-links"><a href="${stopDirUrl(en)}" target="_blank" rel="noopener">Directions &rarr;</a></div></div>`);
+            infoWindow.open({ map, anchor: enMarker });
+          });
+          activeMarkers.push({ marker: enMarker, day: day.day, idx: -2 });
+        }
 
         const pathStops = dayPath(day);
         if (pathStops.length > 1) {
