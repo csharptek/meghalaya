@@ -39,6 +39,7 @@
       color: var(--dark);
       display: flex;
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
     }
 
@@ -422,12 +423,11 @@
     /* Floating Navigation Controls */
     .mobile-nav-toggle {
       position: absolute;
-      left: 50%;
-      bottom: 28px;
-      transform: translateX(-50%);
+      left: 70px;
+      top: 15px;
       z-index: 1001;
       height: 46px;
-      padding: 0 20px;
+      padding: 0 18px;
       border-radius: 30px;
       background: var(--primary);
       border: 2px solid white;
@@ -447,7 +447,7 @@
       0%, 100% { box-shadow: 0 6px 20px rgba(5,150,105,0.45), 0 0 0 0 rgba(5,150,105,0.5); }
       50% { box-shadow: 0 6px 20px rgba(5,150,105,0.45), 0 0 0 10px rgba(5,150,105,0); }
     }
-    body.sidebar-open .mobile-nav-toggle { display: none !important; }
+    body.sidebar-open .mobile-nav-toggle, body.search-open .mobile-nav-toggle { display: none !important; }
     body.sidebar-open .top-tools { display: none; }
     .sidebar-close {
       display: none; position: absolute; top: 16px; right: 16px; z-index: 2;
@@ -1414,13 +1414,17 @@
       const bar = document.getElementById('searchBar');
       if (!bar.classList.contains('collapsed')) return;
       bar.classList.remove('collapsed');
+      document.body.classList.add('search-open');
       setTimeout(() => {
         const el = document.getElementById('placeAutocomplete') || document.querySelector('.legacy-search-input');
         if (el && el.focus) el.focus();
       }, 50);
     }
     function collapseSearch() {
-      if (isMobile()) document.getElementById('searchBar').classList.add('collapsed');
+      if (isMobile()) {
+        document.getElementById('searchBar').classList.add('collapsed');
+        document.body.classList.remove('search-open');
+      }
     }
 
     function clearSearch() {
