@@ -343,6 +343,8 @@
     .rr-place small { display: block; font-size: 11.5px; color: var(--slate); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .rr-chev { color: var(--slate); transition: transform .2s; }
     .reroute-panel.collapsed .rr-body { display: none; }
+    .reroute-panel.no-reroute .rr-body, .reroute-panel.no-reroute .rr-chev { display: none; }
+    .reroute-panel.no-reroute .rr-head { border-bottom: none; cursor: default; }
     .reroute-panel.collapsed .rr-chev { transform: rotate(180deg); }
     .rr-body { padding: 12px 14px; overflow-y: auto; }
     .rr-controls { display: flex; gap: 8px; }
@@ -859,6 +861,7 @@
     ];
 
     const CFG = window.APP_CONFIG || {};
+    const ENABLE_REROUTE = false; // set true to show Re-route
     let map, infoWindow, AdvMarker, PinEl, RouteLib = null, dirService = null;
     let activeMarkers = [];
     let activePolylines = [];
@@ -1364,6 +1367,7 @@
       document.getElementById('rrPlaceName').textContent = place.name;
       document.getElementById('rrPlaceAddr').textContent = place.address;
       document.getElementById('rrResult').innerHTML = '';
+      document.getElementById('reroutePanel').classList.toggle('no-reroute', !ENABLE_REROUTE);
       document.getElementById('reroutePanel').hidden = false;
       document.getElementById('searchClear').style.display = 'flex';
     }
@@ -1399,7 +1403,7 @@
     }
 
     async function rerouteDay() {
-      if (!searchedPlace || !map) return;
+      if (!ENABLE_REROUTE || !searchedPlace || !map) return;
       const dayNum = parseInt(document.getElementById('rerouteDay').value);
       const day = tourData.find(d => d.day === dayNum);
       const btn = document.getElementById('rerouteBtn');
